@@ -57,6 +57,7 @@ func Provider() *schema.Provider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
+			"phpipam_ping":               dataSourcePHPIPAMPing(),
 			"phpipam_address":            dataSourcePHPIPAMAddress(),
 			"phpipam_addresses":          dataSourcePHPIPAMAddresses(),
 			"phpipam_first_free_address": dataSourcePHPIPAMFirstFreeAddress(),

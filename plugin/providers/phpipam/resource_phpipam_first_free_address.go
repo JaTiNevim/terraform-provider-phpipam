@@ -149,6 +149,33 @@ func resourcePHPIPAMFirstFreeAddressCreate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	addrs, err := c.GetAddressesByIP(out)
+	if err != nil {
+		return fmt.Errorf("Could not read IP address after creating: %s", err)
+	}
+
+	if len(addrs) != 1 {
+		return errors.New("IP address either missing or multiple results returned by reading IP after creation")
+	}
+
+	var pingResult PingResponse
+
+	err = c.SendRequest("GET", fmt.Sprintf("/addresses/%d/ping/", addrs[0].ID), &struct{}{}, &pingResult)
+
+	if err != nil {
+		if _, err := c.DeleteAddress(addrs[0].ID, false); err != nil {
+			return err
+		}
+		return err
+	}
+
+	if pingResult.ResultCode == "SUCCESS" {
+		if _, err := c.DeleteAddress(addrs[0].ID, false); err != nil {
+			return err
+		}
+		return errors.New("IP address already exists.")
+	}
+
 	return dataSourcePHPIPAMAddressRead(d, meta)
 }
 
